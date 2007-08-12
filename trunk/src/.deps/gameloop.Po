@@ -1,3 +1,0 @@
-gameloop.o gameloop.o: gameloop.c gameloop.h
-
-gameloop.h:
