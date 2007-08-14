@@ -14,14 +14,7 @@ typedef struct building_s {
   int building_type;
 } building_t;
 
-typedef struct buildsystem_s {
-  library_t * b_images;
-} buildsystem_t;
-
-buildsystem_t * buildsystem_new();
-void buildsystem_free(buildsystem_t *bs);
-
-building_t * building_new(buildsystem_t *bs);
-void building_free(buildsystem_t *bs, building_t *b);
+building_t * building_new();
+void building_free(building_t *b);
 
 #endif

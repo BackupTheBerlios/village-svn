@@ -8,8 +8,6 @@
 
 typedef struct menubar_s {
   SDL_Surface *bg;
-  library_t *font;
-  buildsystem_t *bs;
 } menubar_t;
 
 menubar_t * menubar_new();

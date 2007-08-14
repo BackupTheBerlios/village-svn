@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <SDL.h>
-
 #include "map.h"
 #include "screen.h"
 #include "library.h"
@@ -13,10 +12,13 @@ screen_t *screen;
 menubar_t *menubar;
 
 int main(int argc, char **argv) {
+  SDL_Init(SDL_INIT_VIDEO);
+  atexit(SDL_Quit);
 
   /* inicjacja mapy */
 
   resources_init();
+
   screen = screen_new();  
   map = map_new(128, 128);
   map->camera_x = 500;
@@ -62,7 +64,7 @@ int main(int argc, char **argv) {
       fps = 0;
       last_fps_update = SDL_GetTicks();
       if (fps_label != NULL) SDL_FreeSurface(fps_label);
-      fps_label = text_render(fpstxt, menubar->font);
+      fps_label = text_render(fpstxt, resources.font);
     }
     if (fps_label != NULL) {
       SDL_Rect rect;

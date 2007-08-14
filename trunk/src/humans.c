@@ -1,7 +1,6 @@
 #include "library.h"
 #include "humans.h"
 
-extern resources_t resources;
 extern map_t *map;
 
 human_t * human_new(short int type) {

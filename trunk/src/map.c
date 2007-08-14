@@ -1,11 +1,9 @@
-#include <SDL_image.h>
 #include <math.h>
 #include <stdlib.h>
 #include "map.h"
 #include "library.h"
 
 #define rand(min,max) (min) +(int) (((float)max)*rand()/(RAND_MAX+((float)min)))
-extern resources_t resources;
 
 mapobject_t *mapobject_new(SDL_Surface *image, int type) {
   mapobject_t *obj = malloc(sizeof(mapobject_t));
@@ -65,7 +63,7 @@ void cell_remove(cell_t *cell, mapobject_t *obj) {
 
 map_t * map_new(int width, int height) {
   map_t *map = malloc(sizeof(map_t));
-  map->background = IMG_Load(DATADIR "/background.png");
+  map->background = resources.background->items[0].image;
   map->width = width;
   map->height = height;
   map->cells = malloc(width * height * sizeof(cell_t));

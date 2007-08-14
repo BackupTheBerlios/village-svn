@@ -16,7 +16,7 @@ SDL_LIBS=`sdl-config --libs`
 AC_SUBST([SDL_LIBS])
 CFLAGS="$CFLAGS `sdl-config --cflags`"
 AC_CHECK_HEADERS(SDL/SDL_image.h,,AC_MSG_ERROR([*** Unable to find SDL_Image library]))
-AC_CHECK_LIB(SDL_image, IMG_Load,,AC_MSG_ERROR([*** Unable to find SDL_Image library]),$SDL_LIBS)
+#AC_CHECK_LIB(SDL_image, IMG_Load,,AC_MSG_ERROR([*** Unable to find SDL_Image library]),$SDL_LIBS)
 
 AC_CONFIG_HEADERS(src/config.h)
 AC_CONFIG_FILES([Makefile

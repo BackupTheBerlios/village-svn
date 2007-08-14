@@ -2,15 +2,11 @@
 #include "screen.h"
 #include "library.h"
 
-extern resources_t resources;
-
 screen_t * screen_new() {
-  SDL_Init(SDL_INIT_VIDEO);
-  atexit(SDL_Quit);
-
-  SDL_Surface *video = SDL_SetVideoMode(640,480,24,SDL_HWSURFACE | SDL_FULLSCREEN);
-  //SDL_Surface *video = SDL_SetVideoMode(640,480,24,SDL_HWSURFACE);
+  //SDL_Surface *video = SDL_SetVideoMode(640,480,24,SDL_HWSURFACE | SDL_HWPALETTE | SDL_FULLSCREEN);
+  SDL_Surface *video = SDL_SetVideoMode(640,480,24,SDL_HWSURFACE | SDL_HWPALETTE);
   if (video == NULL) return NULL;
+  SDL_SetColors(video, resources.colors, 0, 256);
 
   SDL_ShowCursor(SDL_DISABLE);
 
