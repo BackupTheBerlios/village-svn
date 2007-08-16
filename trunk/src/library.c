@@ -26,8 +26,9 @@ library_t * library_open(const char *name) {
   for (i=0;i<l->items_count;i++) {
     libitem_t *item = &l->items[i];
     fread(item->name, 1, 32, libfile);
-    int w = fgetc(libfile);
-    int h = fgetc(libfile);
+    int w=0, h=0;
+    fread(&w, 1, 2, libfile);
+    fread(&h, 1, 2, libfile);
     int nc = fgetc(libfile);
     SDL_Color colors[256];
     for (c=0;c<nc;c++) {
@@ -67,36 +68,6 @@ SDL_Surface *library_find(library_t *library, const char *name) {
   return NULL;
 }
 
-int library_save(library_t *library, const char *filename) {
-  int i, c;
-  FILE *file = fopen(filename, "w");
-  if (file == NULL) return -1;
-
-  fwrite(LIBGFX_SIGN, 1, 10, file);
-  fputc(library->items_count, file);
-
-  for (i=0;i<library->items_count;i++) {
-
-    libitem_t *item = &library->items[i];
-    fwrite(item->name, 1, 32, file);
-    fputc(item->image->w, file);
-    fputc(item->image->h, file);
-    fputc(item->image->format->palette->ncolors, file);
-
-    for (c=0;c<item->image->format->palette->ncolors;c++) {
-      SDL_Color *color = &item->image->format->palette->colors[c];
-      fputc(color->r, file);
-      fputc(color->g, file);
-      fputc(color->b, file);
-    }
-
-    fwrite(item->image->pixels, 1, item->image->w * item->image->h, file);
-  }
-
-  fclose(file);
-  return 0;
-}
-
 void library_free(library_t *library) {
   int i;
   for (i=0;i<library->items_count;i++) {
@@ -121,11 +92,12 @@ void append_color(int r, int g, int b) {
       resources.colors[c].r = r;
       resources.colors[c].g = g;
       resources.colors[c].b = b;
+      return;
     }
   }
 }
 
-void sync_colors(library_t *l) {
+void map_colors(library_t *l) {
   int i, c;
   for (i=0;i<l->items_count;i++) {
     SDL_Palette *pal = l->items[i].image->format->palette;
@@ -155,13 +127,23 @@ void resources_init() {
 
   memset(&resources.colors, 0, 256 * sizeof(SDL_Color));
 
-  sync_colors(resources.flora);
-  sync_colors(resources.humans);
-  sync_colors(resources.buildings);
-  sync_colors(resources.cursor);
-  sync_colors(resources.font);
-  sync_colors(resources.background);
-  sync_colors(resources.menubar);
+  map_colors(resources.flora);
+  map_colors(resources.humans);
+  map_colors(resources.buildings);
+  map_colors(resources.cursor);
+  map_colors(resources.font);
+  map_colors(resources.background);
+  map_colors(resources.menubar);
+
+  int c;
+  for (c=1;c<256;c++) {
+    if (resources.colors[c].r == 0 &&
+	resources.colors[c].g == 0 &&
+	resources.colors[c].b == 0) {
+      printf("loaded colors: %d\n", c+1);
+      break;
+    }
+  }
 }
 
 void resources_free() {

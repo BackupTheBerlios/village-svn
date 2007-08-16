@@ -8,7 +8,7 @@ menubar_t * menubar_new() {
   menubar_t *mb = malloc(sizeof(menubar_t));
 
   SDL_Surface *background = resources.menubar->items[0].image;
-  mb->bg = SDL_CreateRGBSurface(SDL_HWSURFACE, background->w, background->h, 8, 0,0,0,0);
+  mb->bg = SDL_CreateRGBSurface(SDL_HWSURFACE, 100, 480, 8, 0,0,0,0);
   SDL_SetColors(mb->bg, resources.colors, 0, 256);
   SDL_BlitSurface(background, NULL, mb->bg, NULL);
 

@@ -49,6 +49,36 @@ library_t * library_ini_open(const char *name) {
   return l;
 }
 
+int library_save(library_t *library, const char *filename) {
+  int i, c;
+  FILE *file = fopen(filename, "w");
+  if (file == NULL) return -1;
+
+  fwrite(LIBGFX_SIGN, 1, 10, file);
+  fputc(library->items_count, file);
+
+  for (i=0;i<library->items_count;i++) {
+
+    libitem_t *item = &library->items[i];
+    fwrite(item->name, 1, 32, file);
+    fwrite(&item->image->w, 2, 1, file);
+    fwrite(&item->image->h, 2, 1, file);
+    fputc(item->image->format->palette->ncolors, file);
+
+    for (c=0;c<item->image->format->palette->ncolors;c++) {
+      SDL_Color *color = &item->image->format->palette->colors[c];
+      fputc(color->r, file);
+      fputc(color->g, file);
+      fputc(color->b, file);
+    }
+
+    fwrite(item->image->pixels, 1, item->image->w * item->image->h, file);
+  }
+
+  fclose(file);
+  return 0;
+}
+
 int main(int argc, char **argv) {
 
   SDL_Init(SDL_INIT_VIDEO);
