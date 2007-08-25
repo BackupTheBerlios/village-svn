@@ -15,8 +15,7 @@ Autor:    Kamil Pawlowski <kamilpe@gmail.com>
 
 /* *** IMPLEMENTACJA LISTY DYNAMICZNEJ ***  */
 
-
-void inline list_clean(pointslist_t *list) {
+void list_clean(pointslist_t *list) {
   free(list->points);
   list->points = NULL;
   list->size = 0;
@@ -128,10 +127,10 @@ void astar_init(astar_t *astar) {
   memset(astar,0,sizeof(astar_t));
 }
 
-void astar_start(astar_t *astar) {
+void astar_start(astar_t *astar, pointslist_t *road) {
   astar->openlist.count = 0;
   astar->closedlist.count = 0;
-  astar->road.count = 0;
+  road->count = 0;
   
   point_t point;
   point.x = astar->src_x;
@@ -160,7 +159,7 @@ void astar_start(astar_t *astar) {
 
   point_t *last = &astar->q;
   while (last != NULL) {
-    list_prepend(&astar->road, last);
+    list_prepend(road, last);
     last = list_find(&astar->closedlist, last->parent_x, last->parent_y);
   }
 };
@@ -168,5 +167,4 @@ void astar_start(astar_t *astar) {
 void astar_clean(astar_t *astar) {
   list_clean(&astar->openlist);
   list_clean(&astar->closedlist);
-  list_clean(&astar->road);
 }

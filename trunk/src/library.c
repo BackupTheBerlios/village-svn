@@ -26,6 +26,7 @@ library_t * library_open(const char *name) {
   for (i=0;i<l->items_count;i++) {
     libitem_t *item = &l->items[i];
     fread(item->name, 1, 32, libfile);
+
     int w=0, h=0;
     fread(&w, 1, 2, libfile);
     fread(&h, 1, 2, libfile);
@@ -36,11 +37,14 @@ library_t * library_open(const char *name) {
       colors[c].g = fgetc(libfile);
       colors[c].b = fgetc(libfile);
     }
+
     item->image = SDL_CreateRGBSurface(SDL_HWSURFACE, w, h, 8, 0, 0, 0, 0);
     SDL_LockSurface(item->image);
     SDL_SetColors(item->image, colors, 0, nc);
     item->image->format->palette->ncolors = nc;
-    fread(item->image->pixels, 1, w*h, libfile);
+    int lines;
+    for (lines=0;lines<h;lines++)
+      fread(item->image->pixels + lines * item->image->pitch, 1, item->image->w, libfile);
     SDL_UnlockSurface(item->image);
 
     /* jesli jest odpowiedni kolor to ustawiam przezroczystosc */
@@ -52,7 +56,6 @@ library_t * library_open(const char *name) {
 	break;
       }
     }
-
   }
 
   fclose(libfile);
@@ -61,6 +64,7 @@ library_t * library_open(const char *name) {
 
 SDL_Surface *library_find(library_t *library, const char *name) {
   int i=0;
+
   for (i=0;i<library->items_count;i++) {  
     if (!strcmp(library->items[i].name, name))
       return library->items[i].image;

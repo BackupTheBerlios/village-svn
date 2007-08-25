@@ -35,13 +35,13 @@ typedef struct astar_s {
   point_t           q;                  /* wskaznik na aktualne pole           */
   pointslist_t      openlist;           /* lista pol otwartych                 */
   pointslist_t      closedlist;         /* lista pol zamknietych               */
-  pointslist_t      road;               /* lista pol zamknietych               */
   void            * callback_data;      /* dane przekazywane do callback       */
   is_roadblock_fn * callback_roadblock; /* funkcja wirtualna do sprawdzania czy pole jest przeszkoda */
 } astar_t;
 
 void astar_init(astar_t *astar);
-void astar_start(astar_t *astar);
+void astar_start(astar_t *astar, pointslist_t *road);
 void astar_clean(astar_t *astar);
+void list_clean(pointslist_t *list);
 
 #endif

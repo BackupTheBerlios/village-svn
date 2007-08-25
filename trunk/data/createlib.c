@@ -71,12 +71,25 @@ int library_save(library_t *library, const char *filename) {
       fputc(color->g, file);
       fputc(color->b, file);
     }
+    SDL_LockSurface(item->image);
 
-    fwrite(item->image->pixels, 1, item->image->w * item->image->h, file);
+    int lines;
+    for (lines=0;lines<item->image->h;lines++)
+      fwrite(item->image->pixels + lines * item->image->pitch, 1, item->image->w, file);
+
+    SDL_UnlockSurface(item->image);
   }
 
   fclose(file);
   return 0;
+}
+
+void library_free(library_t *library) {
+  int i;
+  for (i=0;i<library->items_count;i++) {
+    SDL_FreeSurface(library->items[i].image);
+  }
+  free(library);
 }
 
 int main(int argc, char **argv) {

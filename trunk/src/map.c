@@ -5,55 +5,86 @@
 
 #define rand(min,max) (min) +(int) (((float)max)*rand()/(RAND_MAX+((float)min)))
 
+map_t *map;
+
 mapobject_t *mapobject_new(SDL_Surface *image, int type) {
   mapobject_t *obj = malloc(sizeof(mapobject_t));
+  memset(obj, 0, sizeof(mapobject_t));
   obj->image = image;
   obj->type = type;
-  switch (type) {
-  case MO_TREE: obj->def_flags = CF_NOALL; break;
-  case MO_ROCK: obj->def_flags = CF_NOALL; break;
-  case MO_BUSH: obj->def_flags = CF_NOBUILD; break;
-  case MO_BUILD: obj->def_flags = CF_NOALL; break;
-  case MO_MAN: obj->def_flags = CF_NOBUILD; break;
-  case MO_OTHER: obj->def_flags = 0; break;
-  }
+  obj->direction = DI_STAND;
   return obj;
 }
 
 void mapobject_free(mapobject_t *obj) {
+  list_clean(&obj->road);
   free(obj);
 }
 
+void mapobject_update(mapobject_t *obj) {
+  /* aktualizuje pozycje obiektu */
+  if (obj->step_delay == obj->step_current) {
+    switch (obj->direction) {
+    case DI_W: 
+      {
+	obj->offset_x --;
+	if (obj->offset_x < CELL_SIZE/-2) {
+	  cell_t *cell = &map->cells[obj->parent->y * map->width + obj->parent->x - 1];
+	  cell_remove(obj->parent, obj);
+	  cell_append(cell, obj);
+	  obj->offset_x = CELL_SIZE/2 - 1;
+	  break;
+	}
+      }
+    }
+    obj->step_current = 0;
+  } else obj->step_current ++;
+
+  /* aktualizuje klatke animacji obiektu */
+  animation_t *ani = &obj->animations[obj->direction];
+  if (ani->current == ani->delay) {
+    ani->move_current++;
+    if (ani->move_current > ani->move_count) ani->move_current = 0;
+    obj->image = ani->images[ani->move_current];
+    ani->current = 0;
+  } else ani->current ++;
+  
+  /* sprawdzam czy obiekt nie wyszedl poza mape */
+  if (obj->parent->x == 0 || obj->parent->x == map->width ||
+      obj->parent->y == 0 || obj->parent->y == map->height) 
+    obj->direction = DI_STAND;
+}
+
 void cell_append(cell_t *cell, mapobject_t *obj) {
+  /* jezeli w komorce nie ma zadnego obietku to dodaje ten
+     jako obiekt pierwszy */
   if (cell->object == NULL) {
     cell->object = obj;
     obj->next = NULL;
     obj->parent = cell;
   } else {
     mapobject_t *cur = cell->object;
-    while (cur->next != NULL)
-      cur = cur->next;
-    if (cur != NULL) {
-      cur->next = obj;
-      obj->next = NULL;
-      obj->parent = cell;
-    }
+    /* jade do konca i dopisuje obiekt do konca komorki */
+    while (cur->next != NULL) cur = cur->next;
+    cur->next = obj;
+    obj->next = NULL;
+    obj->parent = cell;
   }
 }
 
 void cell_remove(cell_t *cell, mapobject_t *obj) {
+  /* pomijam jesli komorka nie ma obiektow */
   if (cell->object == NULL) return;
-  else if (cell->object == obj) {
-
-    if (cell->object->next == NULL) cell->object = NULL;
-    else cell->object = obj->next;
+  /* jesli usuwany obiekt jest obiektem glowny trzeba 
+     obiekt nastepny ustawic jako glowny */
+  if (cell->object == obj) {
+    cell->object = obj->next;
     obj->parent = NULL;
-
   } else {
-
+  /* szukam usuwanego obiektu na liscie i jesli go znajde
+     to przesuwam obiekty a tego usuwam */
     mapobject_t *cur = cell->object;
     while (cur->next != obj) cur = cur->next;
-
     if (cur->next == obj) {
       cur->next = cur->next->next;
       obj->parent = NULL;
@@ -80,22 +111,21 @@ map_t * map_new(int width, int height) {
   int i=0;
   for (i=0; i < (map->width * map->height) / 10; i++) {
   randposition:;
-    int x = rand(0, map->width - 1);
-    int y = rand(0, map->height - 1);
+    int x = rand(0, map->width);
+    int y = rand(0, map->height);
     cell_t *cell = &map->cells[x*map->width + y];
     if (cell->object == NULL) {
       SDL_Surface *img = resources.flora->items[rand(0,3)].image;
       mapobject_t *object = mapobject_new(img, MO_TREE);
       cell_append(cell, object);
-      cell->flags = cell->object->def_flags;
     } else goto randposition;
     
   }
 
   for (i=0; i < (map->width * map->height) / 10; i++) {
   randposition2:;
-    int x = rand(0, map->width - 1);
-    int y = rand(0, map->height - 1);
+    int x = rand(0, map->width-1);
+    int y = rand(0, map->height);
     cell_t *cell = &map->cells[y*map->width + x];
     if (cell->object == NULL) {
       int r = rand(3,8);
@@ -110,8 +140,6 @@ map_t * map_new(int width, int height) {
       if (r == 9) object = mapobject_new(img, MO_BUSH);
       if (r == 10) object = mapobject_new(img, MO_OTHER);
       cell_append(cell, object);
-      cell->flags = cell->object->def_flags;
-
     } else goto randposition2;
     
   }
@@ -167,6 +195,8 @@ void map_redraw(map_t *map, screen_t *screen, int px, int py, int kx, int ky) {
   int last_x  = ceil((double)kx / CELL_SIZE) + 1;
   int first_y = floor((double)py / CELL_SIZE);
   int last_y  = ceil((double)ky / CELL_SIZE) + 2;
+  if (last_y > map->height) last_y = map->height;
+  if (last_x > map->width) last_x = map->width;
   
   for (y = first_y; y< last_y; y++) 
     for (x = first_x; x < last_x; x++) {

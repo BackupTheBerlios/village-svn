@@ -1,6 +1,6 @@
 noinst_PROGRAMS = createlib
 createlib_SOURCES = createlib.c
-createlib_LDADD = ../src/village-library.o -lSDL_image
+createlib_LDADD = $(SDL_LIBS) $(SDL_IMAGE_LIBS)
 
 villagedir = $(datadir)/${PACKAGE_TARNAME}
 datafiles = \
@@ -29,7 +29,7 @@ miscfixed.lfg \
 humans.lfg
 
 village_DATA = $(packedfiles)
-noinst_DIST = $(datafiles)
+extra_DIST = $(datafiles)
 
 $(packedfiles): createlib
 	./createlib c background background.lfg

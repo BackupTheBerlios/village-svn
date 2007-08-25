@@ -7,7 +7,7 @@
 #include "menubar.h"
 #include "humans.h"
 
-map_t *map;
+extern map_t *map;
 screen_t *screen;
 menubar_t *menubar;
 
@@ -27,21 +27,8 @@ int main(int argc, char **argv) {
   screen->draw_data = map;
   menubar = menubar_new();
 
-  int i=0, t = HT_MAN;
-  human_t *human[500];
-  for (i=0;i<500;i++) {
-#define rand(min,max) (min) +(int) (((float)max)*rand()/(RAND_MAX+((float)min)))
-    
-    int x = rand(0,128);
-    int y = rand(0,128);
-
-    human[i] = human_new(t);
-    cell_append(&map->cells[y * map->width + x], (mapobject_t*) human[i]);
-    if (t == HT_MAN) t = HT_WOMAN;
-    else t = HT_MAN;
-    human[i]->walk_step = rand(0,5);
-  }
-  
+  human_t *human = human_new(MO_MAN);
+  cell_append(&map->cells[1 * map->width + 1], (mapobject_t*) human);
   /* main loop */
 
   Uint32 last_ticks = SDL_GetTicks();
@@ -87,6 +74,12 @@ int main(int argc, char **argv) {
 	  else if (screen->mouse_y > screen->video->h - 2) screen->current_cursor = CURSOR_DOWN;
 	  else screen->current_cursor = CURSOR_ARROW;
 	}
+      case SDL_MOUSEBUTTONDOWN:
+	{
+	  int x = (map->camera_x + event.button.x) / CELL_SIZE;
+	  int y = (map->camera_y + event.button.y) / CELL_SIZE;
+	  //printf("ruszam do: %dx%d\n", x, y);
+	}
       case SDL_KEYDOWN: 
 	{
 	  if (event.key.keysym.sym == SDLK_ESCAPE) loop = 0;
@@ -98,8 +91,7 @@ int main(int argc, char **argv) {
     while (SDL_GetTicks() - last_ticks > 9) {
       last_ticks += 10;
 
-      for (i=0;i<500;i++) 
-	human_update(human[i]);
+      mapobject_update(&human->object);
 
       if (keys[SDLK_LEFT] || screen->current_cursor == CURSOR_LEFT) {
 	map->camera_x -= 4;
